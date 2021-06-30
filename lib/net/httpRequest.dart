@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_common_lib/helper/logUtils.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:convert';
-import 'LogInterceptor.dart';
-import 'GlobalConfig.dart';
-import 'HeaderInterceptor.dart';
-import 'ResultCode.dart';
+import 'globalConfig.dart';
+import 'headerInterceptor.dart';
+import 'resultCode.dart';
 
 /*
  * 网络请求管理类
@@ -19,7 +20,15 @@ class HttpRequest {
       dio = new Dio(new BaseOptions(
           baseUrl: baseUrl ?? GlobalConfig.BASE_URL, connectTimeout: 15000));
       dio.interceptors.add(_headerInterceptor);
-      dio.interceptors.add(DioLogInterceptor());
+      dio.interceptors.add(PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ));
     }
   }
 
@@ -97,11 +106,11 @@ class HttpRequest {
         errorResponse = new Response(statusCode: 666);
       }
       // 请求超时
-      if (error.type == DioErrorType.CONNECT_TIMEOUT) {
+      if (error.type == DioErrorType.connectTimeout) {
         errorResponse.statusCode = ResultCode.CONNECT_TIMEOUT;
       }
       // 一般服务器错误
-      else if (error.type == DioErrorType.RECEIVE_TIMEOUT) {
+      else if (error.type == DioErrorType.receiveTimeout) {
         errorResponse.statusCode = ResultCode.RECEIVE_TIMEOUT;
       }
       _error(errorCallBack, error.message);

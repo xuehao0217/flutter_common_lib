@@ -4,9 +4,9 @@ import 'package:dio/dio.dart';
 
 class HeaderInterceptor extends Interceptor {
   @override
-  Future<FutureOr> onRequest(RequestOptions options) async {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     options.headers.addAll(headMaps);
-    return super.onRequest(options);
+    super.onRequest(options, handler);
   }
 
   var headMaps = Map<String, String>();
