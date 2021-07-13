@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter_common_lib/helper/logUtils.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:convert';
+import 'baseResult.dart';
 import 'globalConfig.dart';
 import 'headerInterceptor.dart';
-import 'resultCode.dart';
 
 /*
  * 网络请求管理类
@@ -72,7 +72,7 @@ class HttpRequest {
   }
 
   //get请求
-  get(String url, params, Function successCallBack,
+  get<T>(String url, params, Function(T) successCallBack,
       {Function errorCallBack, Function finallyCallBack}) async {
     _requstHttp(
         url, successCallBack, 'get', params, errorCallBack, finallyCallBack);
@@ -85,7 +85,7 @@ class HttpRequest {
         url, successCallBack, "post", params, errorCallBack, finallyCallBack);
   }
 
-  _requstHttp(String url, Function successCallBack,
+  _requstHttp<T>(String url, Function(T) successCallBack,
       [String method,
       Map<String, dynamic> params,
       Function errorCallBack,
@@ -98,41 +98,27 @@ class HttpRequest {
         response = await dio.post(url, data: params);
       }
     } on DioError catch (error) {
-      // 请求错误处理
-      Response errorResponse;
-      if (error.response != null) {
-        errorResponse = error.response;
-      } else {
-        errorResponse = new Response(statusCode: 666);
-      }
-      // 请求超时
-      if (error.type == DioErrorType.connectTimeout) {
-        errorResponse.statusCode = ResultCode.CONNECT_TIMEOUT;
-      }
-      // 一般服务器错误
-      else if (error.type == DioErrorType.receiveTimeout) {
-        errorResponse.statusCode = ResultCode.RECEIVE_TIMEOUT;
-      }
-      _error(errorCallBack, error.message);
-      return '';
+      // 请求错误处理;
+      LogUtils.e('HTTP   错误码：' +
+          error.type.toString() +
+          '，' +
+          error.response.toString());
+
+      errorCallBack?.call(HttpError(
+          errorMsg: 'HTTP   错误码：' +
+              error.type.toString() +
+              '，' +
+              error.response.toString()));
     } finally {
       finallyCallBack?.call();
     }
 
-    String dataStr = json.encode(response.data);
-    Map<String, dynamic> dataMap = json.decode(dataStr);
-    if (dataMap == null || dataMap['state'] == 0) {
-      _error(
-          errorCallBack,
-          '错误码：' +
-              dataMap['errorCode'].toString() +
-              '，' +
-              response.data.toString());
+    var baseResult = BaseResult<T>.fromJson(response.data);
+    if (baseResult.success && baseResult.data != null) {
+      successCallBack?.call(baseResult.data);
+    } else {
+      errorCallBack?.call(HttpError(
+          errorCode: baseResult.errorCode, errorMsg: baseResult.errorMsg));
     }
-    successCallBack?.call(dataMap);
-  }
-
-  _error(Function errorCallBack, String error) {
-    errorCallBack?.call(error);
   }
 }
