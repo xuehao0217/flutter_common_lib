@@ -39,12 +39,13 @@ class CommonListView extends StatelessWidget {
         ? SmartRefresher(
             enablePullUp: enablePullUp,
             enablePullDown: enablePullDown,
-            controller: refreshController ?? RefreshController(initialRefresh: initialRefresh),
+            controller: refreshController ??
+                RefreshController(initialRefresh: initialRefresh),
             onRefresh: onRefresh,
             onLoading: onLoading,
             child: getListView(),
           )
-        : getListView;
+        : getListView();
   }
 
   int getHeaderCount() {
