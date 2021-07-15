@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_common_lib/entity/home_entity.dart';
 import 'package:flutter_common_lib/helper/logUtils.dart';
-import 'package:flutter_common_lib/net/baseResult.dart';
 import 'package:flutter_common_lib/net/httpRequest.dart';
+import 'package:flutter_common_lib/wiget/common_list_view.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 /// 创 建 人: xueh
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   RefreshController _refreshController =
       RefreshController(initialRefresh: true);
 
-  void _onRefresh() async {
+  void _onRefresh() {
     _getData(isRefresh: true);
   }
 
@@ -33,37 +34,33 @@ class _HomePageState extends State<HomePage> {
         if (isRefresh) {
           homeItems.clear();
           homeItems.addAll(data.datas);
+          _refreshController.refreshCompleted();
         } else {
           homeItems.addAll(data.datas);
+          _refreshController.loadComplete();
         }
-        _refreshController.refreshCompleted();
       });
     });
   }
 
-  void _onLoading() async {
+  void _onLoading() {
     index += 1;
     _getData();
-    _refreshController.loadComplete();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SmartRefresher(
-        enablePullDown: true,
-        enablePullUp: true,
-        header: ClassicHeader(),
-        footer: ClassicFooter(),
-        controller: _refreshController,
+      body: CommonListView(
+        itemCount: homeItems.length,
+        refreshController: _refreshController,
         onRefresh: _onRefresh,
         onLoading: _onLoading,
-        child: ListView.builder(
-          itemBuilder: (c, i) =>
-              Card(child: Center(child: Text(homeItems[i].title))),
-          itemExtent: 100.0,
-          itemCount: homeItems.length,
-        ),
+        itemBuilder: (c, i) => Card(
+            child: Container(
+          child: Center(child: Text(homeItems[i].title)),
+          height: 100,
+        )),
       ),
     );
   }
