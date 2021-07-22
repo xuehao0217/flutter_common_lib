@@ -18,8 +18,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<HomeDatas> homeItems = [];
-  RefreshController _refreshController =
-      RefreshController(initialRefresh: true);
+  RefreshController _refreshController = RefreshController(initialRefresh: true);
 
   void _onRefresh() {
     _getData(isRefresh: true);
@@ -28,8 +27,7 @@ class _HomePageState extends State<HomePage> {
   var index = 0;
 
   void _getData({bool isRefresh = false}) {
-    HttpRequest.getInstance()
-        .get<HomeEntity>("article/list/${index}/json", null, (data) {
+    HttpRequest.getInstance().get<HomeEntity>("article/list/${index}/json", null, (data) {
       setState(() {
         if (isRefresh) {
           homeItems.clear();
@@ -52,15 +50,25 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CommonListView(
+        header: [
+          Container(
+            color: Colors.red,
+            height: 300,
+          )
+        ],
         itemCount: homeItems.length,
         refreshController: _refreshController,
         onRefresh: _onRefresh,
         onLoading: _onLoading,
         itemBuilder: (c, i) => Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+            ),
+            elevation: 0,
             child: Container(
-          child: Center(child: Text(homeItems[i].title)),
-          height: 100,
-        )),
+              child: Center(child: Text(homeItems[i].title)),
+              height: 100,
+            )),
       ),
     );
   }
